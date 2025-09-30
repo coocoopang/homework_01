@@ -1,0 +1,39 @@
+# Lizard config file #
+####################
+*\_ver.~cst
+*\_tmp.~cst
+
+# Visual studio file #
+####################
+*\packages
+*\.vs
+*\.svn
+
+# VS Compiled file #
+####################
+*.sdf
+*.opensdf
+*.pch
+*.ipch
+*.ncb
+*.pdb
+*.ilk
+*.zip
+*.gz
+*.obj
+*.log
+*.idb
+*.tlog
+*.bak
+*.bsc
+*.aps
+*.suo
+*.tmp
+*.iobj
+*.ipdb
+*.exp
+*.dll
+
+#Link ignore
+NameOfSymlink
+AnotherSymlink
