@@ -18,20 +18,20 @@ std::vector<cv::Point> FindLocalExtrema_Enhanced(cv::Mat& src, double minThresho
     localMinImg = (src > erodedImg);
 
     cv::Mat localExtremaImg = (localMaxImg & localMinImg);
-
+    
     std::vector<cv::Point> points;
 
     for (int y = 0; y < localExtremaImg.rows; ++y) {
         for (int x = 0; x < localExtremaImg.cols; ++x) {
             uchar val = localExtremaImg.at<uchar>(y, x);
             float response = src.at<float>(y, x);
-
+            
             if (val && response >= minThreshold) {
                 points.push_back(cv::Point(x, y));
             }
         }
     }
-
+    
     return points;
 }
 
@@ -67,7 +67,7 @@ int run_HoughLines_Original()
 {
     cv::Mat src = cv::imread("./images/lg_building.jpg", cv::IMREAD_GRAYSCALE);
     if (src.empty()) {
-        std::cerr << "¿ÃπÃ¡ˆ∏¶ ∫“∑Øø√ ºˆ æ¯Ω¿¥œ¥Ÿ." << std::endl;
+        std::cerr << "Ïù¥ÎØ∏ÏßÄÎ•º Î∂àÎü¨Ïò¨ Ïàò ÏóÜÏäµÎãàÎã§." << std::endl;
         return -1;
     }
 
@@ -80,7 +80,7 @@ int run_HoughLines_Original()
     std::vector<cv::Vec2f> lines;
     cv::HoughLines(src_edge, lines, 1, CV_PI / 180, 400);
 
-    std::cout << "OpenCV HoughLines ∞·∞˙: " << lines.size() << "∞≥ ¡˜º± ∞À√‚" << std::endl;
+    std::cout << "OpenCV HoughLines Í≤∞Í≥º: " << lines.size() << "Í∞ú ÏßÅÏÑ† Í≤ÄÏ∂ú" << std::endl;
 
     for (size_t i = 0; i < lines.size(); i++) {
         float rho = lines[i][0], theta = lines[i][1];
@@ -100,19 +100,17 @@ int run_HoughLines_Original()
         cv::imshow("Line Image", src_out);
         cv::waitKey(0);
         cv::destroyAllWindows();
-    }
-    catch (const cv::Exception& e) {
-        std::cout << "µΩ∫«√∑π¿Ã ªÁøÎ ∫“∞°, ∞·∞˙∏∏ √‚∑¬«’¥œ¥Ÿ." << std::endl;
+    } catch(const cv::Exception& e) {
+        std::cout << "ÎîîÏä§ÌîåÎ†àÏù¥ ÏÇ¨Ïö© Î∂àÍ∞Ä, Í≤∞Í≥ºÎßå Ï∂úÎ†•Ìï©ÎãàÎã§." << std::endl;
     }
     return 0;
-
 }
 
 int run_HoughLines_Custom()
 {
     cv::Mat src = cv::imread("./images/lg_building.jpg", cv::IMREAD_GRAYSCALE);
     if (src.empty()) {
-        std::cerr << "¿ÃπÃ¡ˆ∏¶ ∫“∑Øø√ ºˆ æ¯Ω¿¥œ¥Ÿ." << std::endl;
+        std::cerr << "Ïù¥ÎØ∏ÏßÄÎ•º Î∂àÎü¨Ïò¨ Ïàò ÏóÜÏäµÎãàÎã§." << std::endl;
         return -1;
     }
 
@@ -122,11 +120,10 @@ int run_HoughLines_Custom()
     cv::Mat src_edge;
     cv::Canny(src, src_edge, 170, 200);
 
-
     std::vector<cv::Vec2f> lines;
-    custom_cv::HoughLines(src_edge, lines, 1, CV_PI / 180.0, 80);  // √÷¿˚»≠µ» threshold
+    custom_cv::HoughLines(src_edge, lines, 1, CV_PI / 180.0, 80);  // ÏµúÏ†ÅÌôîÎêú threshold
 
-    std::cout << "Custom HoughLines ∞·∞˙: " << lines.size() << "∞≥ ¡˜º± ∞À√‚" << std::endl;
+    std::cout << "Custom HoughLines Í≤∞Í≥º: " << lines.size() << "Í∞ú ÏßÅÏÑ† Í≤ÄÏ∂ú" << std::endl;
 
     for (size_t i = 0; i < lines.size(); i++) {
         float rho = lines[i][0], theta = lines[i][1];
@@ -146,9 +143,8 @@ int run_HoughLines_Custom()
         cv::imshow("Line Image", src_out);
         cv::waitKey(0);
         cv::destroyAllWindows();
-    }
-    catch (const cv::Exception& e) {
-        std::cout << "µΩ∫«√∑π¿Ã ªÁøÎ ∫“∞°, ∞·∞˙∏∏ √‚∑¬«’¥œ¥Ÿ." << std::endl;
+    } catch(const cv::Exception& e) {
+        std::cout << "ÎîîÏä§ÌîåÎ†àÏù¥ ÏÇ¨Ïö© Î∂àÍ∞Ä, Í≤∞Í≥ºÎßå Ï∂úÎ†•Ìï©ÎãàÎã§." << std::endl;
     }
     return 0;
 }
@@ -157,7 +153,7 @@ int run_HarrisCornerDetector_Original()
 {
     cv::Mat src = cv::imread("./images/shapes1.jpg", cv::IMREAD_GRAYSCALE);
     if (src.empty()) {
-        std::cerr << "¿ÃπÃ¡ˆ∏¶ ∫“∑Øø√ ºˆ æ¯Ω¿¥œ¥Ÿ." << std::endl;
+        std::cerr << "Ïù¥ÎØ∏ÏßÄÎ•º Î∂àÎü¨Ïò¨ Ïàò ÏóÜÏäµÎãàÎã§." << std::endl;
         return -1;
     }
 
@@ -171,7 +167,7 @@ int run_HarrisCornerDetector_Original()
 
     std::vector<cv::Point> cornerPoints = FindLocalExtrema(R);
 
-    std::cout << "OpenCV cornerHarris ∞·∞˙: " << cornerPoints.size() << "∞≥ ƒ⁄≥  ∞À√‚" << std::endl;
+    std::cout << "OpenCV cornerHarris Í≤∞Í≥º: " << cornerPoints.size() << "Í∞ú ÏΩîÎÑà Í≤ÄÏ∂ú" << std::endl;
 
     cv::Mat dst(src.size(), CV_8UC3);
     cvtColor(src, dst, cv::COLOR_GRAY2BGR);
@@ -185,9 +181,8 @@ int run_HarrisCornerDetector_Original()
         cv::imshow("Result Image", dst);
         cv::waitKey(0);
         cv::destroyAllWindows();
-    }
-    catch (const cv::Exception& e) {
-        std::cout << "µΩ∫«√∑π¿Ã ªÁøÎ ∫“∞°, ∞·∞˙∏∏ √‚∑¬«’¥œ¥Ÿ." << std::endl;
+    } catch(const cv::Exception& e) {
+        std::cout << "ÎîîÏä§ÌîåÎ†àÏù¥ ÏÇ¨Ïö© Î∂àÍ∞Ä, Í≤∞Í≥ºÎßå Ï∂úÎ†•Ìï©ÎãàÎã§." << std::endl;
     }
 
     return 0;
@@ -197,7 +192,7 @@ int run_HarrisCornerDetector_Custom()
 {
     cv::Mat src = cv::imread("./images/shapes1.jpg", cv::IMREAD_GRAYSCALE);
     if (src.empty()) {
-        std::cerr << "¿ÃπÃ¡ˆ∏¶ ∫“∑Øø√ ºˆ æ¯Ω¿¥œ¥Ÿ." << std::endl;
+        std::cerr << "Ïù¥ÎØ∏ÏßÄÎ•º Î∂àÎü¨Ïò¨ Ïàò ÏóÜÏäµÎãàÎã§." << std::endl;
         return -1;
     }
 
@@ -211,11 +206,10 @@ int run_HarrisCornerDetector_Custom()
 
     std::vector<cv::Point> cornerPoints = FindLocalExtrema(R);
 
-    std::cout << "Custom cornerHarris ∞·∞˙: " << cornerPoints.size() << "∞≥ ƒ⁄≥  ∞À√‚" << std::endl;
+    std::cout << "Custom cornerHarris Í≤∞Í≥º: " << cornerPoints.size() << "Í∞ú ÏΩîÎÑà Í≤ÄÏ∂ú" << std::endl;
 
     cv::Mat dst(src.size(), CV_8UC3);
     cvtColor(src, dst, cv::COLOR_GRAY2BGR);
-
 
     for (const auto& c : cornerPoints) {
         cv::circle(dst, c, 5, cv::Scalar(0, 0, 255), 2);
@@ -226,9 +220,8 @@ int run_HarrisCornerDetector_Custom()
         cv::imshow("Result Image", dst);
         cv::waitKey(0);
         cv::destroyAllWindows();
-    }
-    catch (const cv::Exception& e) {
-        std::cout << "µΩ∫«√∑π¿Ã ªÁøÎ ∫“∞°, ∞·∞˙∏∏ √‚∑¬«’¥œ¥Ÿ." << std::endl;
+    } catch(const cv::Exception& e) {
+        std::cout << "ÎîîÏä§ÌîåÎ†àÏù¥ ÏÇ¨Ïö© Î∂àÍ∞Ä, Í≤∞Í≥ºÎßå Ï∂úÎ†•Ìï©ÎãàÎã§." << std::endl;
     }
 
     return 0;
@@ -238,7 +231,7 @@ int run_HarrisCornerDetector_Enhanced()
 {
     cv::Mat src = cv::imread("./images/shapes1.jpg", cv::IMREAD_GRAYSCALE);
     if (src.empty()) {
-        std::cerr << "¿ÃπÃ¡ˆ∏¶ ∫“∑Øø√ ºˆ æ¯Ω¿¥œ¥Ÿ." << std::endl;
+        std::cerr << "Ïù¥ÎØ∏ÏßÄÎ•º Î∂àÎü¨Ïò¨ Ïàò ÏóÜÏäµÎãàÎã§." << std::endl;
         return -1;
     }
 
@@ -246,22 +239,22 @@ int run_HarrisCornerDetector_Enhanced()
     int kSize = 3;
     double k = 0.01;
 
-    std::cout << "Enhanced Harris Corner Detection Ω««‡ ¡ﬂ..." << std::endl;
-
+    std::cout << "Enhanced Harris Corner Detection Ïã§Ìñâ Ï§ë..." << std::endl;
+    
     cv::Mat R;
     custom_cv::cornerHarris(src, R, blockSize, kSize, k);
-    cv::threshold(R, R, 0.015, 0, cv::THRESH_TOZERO);  // ¥ı ≥∑¿∫ threshold
+    cv::threshold(R, R, 0.015, 0, cv::THRESH_TOZERO);  // Îçî ÎÇÆÏùÄ threshold
 
-    // Enhanced FindLocalExtrema ªÁøÎ
+    // Enhanced FindLocalExtrema ÏÇ¨Ïö©
     std::vector<cv::Point> cornerPoints = FindLocalExtrema_Enhanced(R, 0.01);
 
-    std::cout << "Enhanced cornerHarris ∞·∞˙: " << cornerPoints.size() << "∞≥ ƒ⁄≥  ∞À√‚" << std::endl;
+    std::cout << "Enhanced cornerHarris Í≤∞Í≥º: " << cornerPoints.size() << "Í∞ú ÏΩîÎÑà Í≤ÄÏ∂ú" << std::endl;
 
     cv::Mat dst(src.size(), CV_8UC3);
     cvtColor(src, dst, cv::COLOR_GRAY2BGR);
 
     for (const auto& c : cornerPoints) {
-        cv::circle(dst, c, 5, cv::Scalar(0, 255, 0), 2);  // ≥Ïªˆ¿∏∑Œ «•Ω√
+        cv::circle(dst, c, 5, cv::Scalar(0, 255, 0), 2);  // ÎÖπÏÉâÏúºÎ°ú ÌëúÏãú
     }
 
     try {
@@ -269,9 +262,8 @@ int run_HarrisCornerDetector_Enhanced()
         cv::imshow("Enhanced Result Image", dst);
         cv::waitKey(0);
         cv::destroyAllWindows();
-    }
-    catch (const cv::Exception& e) {
-        std::cout << "µΩ∫«√∑π¿Ã ªÁøÎ ∫“∞°, ∞·∞˙∏∏ √‚∑¬«’¥œ¥Ÿ." << std::endl;
+    } catch(const cv::Exception& e) {
+        std::cout << "ÎîîÏä§ÌîåÎ†àÏù¥ ÏÇ¨Ïö© Î∂àÍ∞Ä, Í≤∞Í≥ºÎßå Ï∂úÎ†•Ìï©ÎãàÎã§." << std::endl;
     }
 
     return 0;
@@ -279,21 +271,21 @@ int run_HarrisCornerDetector_Enhanced()
 
 int main()
 {
-    std::cout << "Computer Vision Assignment - «‚ªÛµ» ±∏«ˆ" << std::endl;
+    std::cout << "Computer Vision Assignment - Ìñ•ÏÉÅÎêú Íµ¨ÌòÑ" << std::endl;
     std::cout << "=================================================" << std::endl;
 
     int choice;
     while (true) {
-        std::cout << "\nø…º«¿ª º±≈√«œººø‰:" << std::endl;
-        std::cout << "1. OpenCV HoughLines Ω««‡" << std::endl;
-        std::cout << "2. Custom HoughLines Ω««‡ (√÷¿˚»≠µ )" << std::endl;
-        std::cout << "3. OpenCV cornerHarris Ω««‡" << std::endl;
-        std::cout << "4. Custom cornerHarris Ω««‡" << std::endl;
-        std::cout << "5. Enhanced cornerHarris Ω««‡ (»∏¿¸µ» µµ«¸ √÷¿˚»≠)" << std::endl;
-        std::cout << "6. Hough Lines ∫Ò±≥ (OpenCV vs Custom)" << std::endl;
-        std::cout << "7. Harris Corners ∫Ò±≥ (OpenCV vs Custom vs Enhanced)" << std::endl;
-        std::cout << "0. ¡æ∑·" << std::endl;
-        std::cout << "º±≈√: ";
+        std::cout << "\nÏòµÏÖòÏùÑ ÏÑ†ÌÉùÌïòÏÑ∏Ïöî:" << std::endl;
+        std::cout << "1. OpenCV HoughLines Ïã§Ìñâ" << std::endl;
+        std::cout << "2. Custom HoughLines Ïã§Ìñâ (ÏµúÏ†ÅÌôîÎê®)" << std::endl;
+        std::cout << "3. OpenCV cornerHarris Ïã§Ìñâ" << std::endl;
+        std::cout << "4. Custom cornerHarris Ïã§Ìñâ" << std::endl;
+        std::cout << "5. Enhanced cornerHarris Ïã§Ìñâ (ÌöåÏ†ÑÎêú ÎèÑÌòï ÏµúÏ†ÅÌôî)" << std::endl;
+        std::cout << "6. Hough Lines ÎπÑÍµê (OpenCV vs Custom)" << std::endl;
+        std::cout << "7. Harris Corners ÎπÑÍµê (OpenCV vs Custom vs Enhanced)" << std::endl;
+        std::cout << "0. Ï¢ÖÎ£å" << std::endl;
+        std::cout << "ÏÑ†ÌÉù: ";
 
         std::cin >> choice;
 
@@ -314,21 +306,21 @@ int main()
             run_HarrisCornerDetector_Enhanced();
             break;
         case 6:
-            std::cout << "\n=== HoughLines ∫Ò±≥ ===" << std::endl;
+            std::cout << "\n=== HoughLines ÎπÑÍµê ===" << std::endl;
             run_HoughLines_Original();
             run_HoughLines_Custom();
             break;
         case 7:
-            std::cout << "\n=== Harris Corners ∫Ò±≥ ===" << std::endl;
+            std::cout << "\n=== Harris Corners ÎπÑÍµê ===" << std::endl;
             run_HarrisCornerDetector_Original();
             run_HarrisCornerDetector_Custom();
             run_HarrisCornerDetector_Enhanced();
             break;
         case 0:
-            std::cout << "«¡∑Œ±◊∑•¿ª ¡æ∑·«’¥œ¥Ÿ..." << std::endl;
+            std::cout << "ÌîÑÎ°úÍ∑∏Îû®ÏùÑ Ï¢ÖÎ£åÌï©ÎãàÎã§..." << std::endl;
             return 0;
         default:
-            std::cout << "¿ﬂ∏¯µ» º±≈√¿‘¥œ¥Ÿ. ¥ŸΩ√ Ω√µµ«ÿ¡÷ººø‰." << std::endl;
+            std::cout << "ÏûòÎ™ªÎêú ÏÑ†ÌÉùÏûÖÎãàÎã§. Îã§Ïãú ÏãúÎèÑÌï¥Ï£ºÏÑ∏Ïöî." << std::endl;
         }
     }
 
