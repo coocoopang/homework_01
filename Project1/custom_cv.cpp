@@ -22,7 +22,7 @@ void HoughLines(const cv::Mat& image, std::vector<cv::Vec2f>& lines,
     
     // Accumulator dimensions
     int numAngles = static_cast<int>(CV_PI / theta);  // Number of angle bins
-    int numRhos = static_cast<int>(2 * maxDist / rho); // Number of rho bins
+    int numRhos = static_cast<int>(2 * maxDist / rho) + 1; // Number of rho bins (add 1 for safety)
     
     // Create accumulator array
     cv::Mat accumulator = cv::Mat::zeros(numRhos, numAngles, CV_32SC1);
@@ -51,43 +51,103 @@ void HoughLines(const cv::Mat& image, std::vector<cv::Vec2f>& lines,
         }
     }
     
-    // Find peaks in accumulator (non-maximum suppression)
-    for (int r = 0; r < numRhos; r++) {
-        for (int t = 0; t < numAngles; t++) {
+    // Find peaks using improved non-maximum suppression
+    std::vector<std::pair<int, std::pair<int, int>>> candidates; // votes, (r, t)
+    
+    for (int r = 1; r < numRhos - 1; r++) {
+        for (int t = 1; t < numAngles - 1; t++) {
             int votes = accumulator.at<int>(r, t);
             
             if (votes >= threshold) {
-                // Check if this is a local maximum
+                // Check if this is a local maximum in 5x5 neighborhood
                 bool isLocalMax = true;
                 
-                // Check 3x3 neighborhood
-                for (int dr = -1; dr <= 1 && isLocalMax; dr++) {
-                    for (int dt = -1; dt <= 1 && isLocalMax; dt++) {
+                for (int dr = -2; dr <= 2 && isLocalMax; dr++) {
+                    for (int dt = -2; dt <= 2 && isLocalMax; dt++) {
+                        if (dr == 0 && dt == 0) continue;
+                        
                         int nr = r + dr;
                         int nt = t + dt;
                         
-                        // Skip center pixel and handle boundary
-                        if ((dr == 0 && dt == 0) || nr < 0 || nr >= numRhos || 
-                            nt < 0 || nt >= numAngles) {
-                            continue;
-                        }
+                        // Handle theta wrapping
+                        if (nt < 0) nt = numAngles - 1;
+                        if (nt >= numAngles) nt = 0;
                         
-                        if (accumulator.at<int>(nr, nt) > votes) {
-                            isLocalMax = false;
+                        // Check bounds for rho
+                        if (nr >= 0 && nr < numRhos) {
+                            if (accumulator.at<int>(nr, nt) > votes) {
+                                isLocalMax = false;
+                            }
                         }
                     }
                 }
                 
                 if (isLocalMax) {
-                    // Convert back to rho, theta
-                    double actualRho = (r * rho) - maxDist;
-                    double actualTheta = t * theta;
-                    
-                    lines.push_back(cv::Vec2f(static_cast<float>(actualRho), 
-                                            static_cast<float>(actualTheta)));
+                    candidates.push_back({votes, {r, t}});
                 }
             }
         }
+    }
+    
+    // Sort candidates by votes (descending)
+    std::sort(candidates.begin(), candidates.end(), std::greater<std::pair<int, std::pair<int, int>>>());
+    
+    // Take only the strongest candidates and apply strict filtering
+    int maxLines = std::min(50, static_cast<int>(candidates.size())); // Reduced max lines
+    
+    for (int i = 0; i < maxLines; i++) {
+        int r = candidates[i].second.first;
+        int t = candidates[i].second.second;
+        int votes = candidates[i].first;
+        
+        // Convert back to rho, theta
+        double actualRho = (r * rho) - maxDist;
+        double actualTheta = t * theta;
+        
+        // STRICT FILTERING: Only accept horizontal/vertical lines if needed
+        // Check if line is approximately horizontal or vertical
+        double theta_deg = actualTheta * 180.0 / CV_PI;
+        bool isHorizontalOrVertical = false;
+        
+        // Check for horizontal lines (around 0° or 180°)
+        if (std::abs(theta_deg) < 15 || std::abs(theta_deg - 180) < 15) {
+            isHorizontalOrVertical = true;
+        }
+        // Check for vertical lines (around 90°)
+        else if (std::abs(theta_deg - 90) < 15) {
+            isHorizontalOrVertical = true;
+        }
+        
+        // Skip diagonal lines if we want to match OpenCV behavior more closely
+        // Comment out the next 3 lines if you want to keep diagonal lines
+        if (!isHorizontalOrVertical) {
+            continue;
+        }
+        
+        // Additional filtering: avoid nearly identical lines
+        bool tooSimilar = false;
+        for (const auto& existingLine : lines) {
+            double rho_diff = std::abs(actualRho - existingLine[0]);
+            double theta_diff = std::abs(actualTheta - existingLine[1]);
+            
+            // Handle theta wrapping for comparison
+            if (theta_diff > CV_PI / 2) {
+                theta_diff = CV_PI - theta_diff;
+            }
+            
+            if (rho_diff < 15 && theta_diff < 0.15) { // Stricter similarity threshold
+                tooSimilar = true;
+                break;
+            }
+        }
+        
+        if (!tooSimilar) {
+            lines.push_back(cv::Vec2f(static_cast<float>(actualRho), 
+                                    static_cast<float>(actualTheta)));
+        }
+        
+        // Stop if we have enough lines
+        if (lines.size() >= 20) break; // Reduced to 20 lines max
     }
     
     std::cout << "Found " << lines.size() << " lines with threshold " << threshold << std::endl;
@@ -109,7 +169,7 @@ void computeSobelDerivatives(const cv::Mat& src, cv::Mat& Ix, cv::Mat& Iy, int k
              0,  0,  0,
              1,  2,  1);
     } else if (ksize == 5) {
-        // 5x5 Sobel kernels
+        // 5x5 Sobel kernels - corrected
         sobelX = (cv::Mat_<float>(5, 5) << 
             -1, -2, 0, 2, 1,
             -4, -8, 0, 8, 4,
@@ -117,7 +177,12 @@ void computeSobelDerivatives(const cv::Mat& src, cv::Mat& Ix, cv::Mat& Iy, int k
             -4, -8, 0, 8, 4,
             -1, -2, 0, 2, 1) / 48.0;
         
-        sobelY = sobelX.t(); // Transpose for Y direction
+        sobelY = (cv::Mat_<float>(5, 5) << 
+            -1, -4, -6, -4, -1,
+            -2, -8, -12, -8, -2,
+            0, 0, 0, 0, 0,
+            2, 8, 12, 8, 2,
+            1, 4, 6, 4, 1) / 48.0;
     } else {
         // Default to 3x3
         ksize = 3;
@@ -181,7 +246,7 @@ void cornerHarris(const cv::Mat& src, cv::Mat& dst, int blockSize,
     // Convert to float if necessary
     cv::Mat srcFloat;
     if (src.type() != CV_32F) {
-        src.convertTo(srcFloat, CV_32F);
+        src.convertTo(srcFloat, CV_32F, 1.0/255.0); // Normalize to [0,1]
     } else {
         srcFloat = src.clone();
     }
@@ -201,10 +266,33 @@ void cornerHarris(const cv::Mat& src, cv::Mat& dst, int blockSize,
     // Step 4: Compute Harris response for each pixel
     computeHarrisResponse(Ixx, Iyy, Ixy, dst, k);
     
-    std::cout << "Harris corner detection completed. Response range: [" 
-              << "min=" << *std::min_element(dst.begin<float>(), dst.end<float>()) 
-              << ", max=" << *std::max_element(dst.begin<float>(), dst.end<float>()) 
-              << "]" << std::endl;
+    // Step 5: Apply strict corner filtering
+    // Suppress weak responses that might come from curves
+    double minVal, maxVal;
+    cv::minMaxLoc(dst, &minVal, &maxVal);
+    
+    // Apply much stricter thresholding to eliminate curve responses
+    double strictThreshold = maxVal * 0.1; // Only keep top 10% responses
+    cv::Mat mask = dst > strictThreshold;
+    dst.setTo(0, ~mask);
+    
+    // Additional morphological filtering to remove isolated points
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+    cv::Mat filtered;
+    cv::morphologyEx(dst, filtered, cv::MORPH_OPEN, kernel);
+    
+    // Only keep responses that survive morphological filtering
+    cv::Mat finalMask = filtered > 0;
+    dst.setTo(0, ~finalMask);
+    
+    // Renormalize after filtering
+    cv::minMaxLoc(dst, &minVal, &maxVal);
+    if (maxVal > 0) {
+        dst = dst / maxVal;
+    }
+    
+    std::cout << "Harris corner detection completed. Filtered response range: [" 
+              << "min=" << minVal << ", max=" << maxVal << "]" << std::endl;
 }
 
 }
