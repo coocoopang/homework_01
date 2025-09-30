@@ -33,7 +33,7 @@ int run_HoughLines_Original()
 {
 	cv::Mat src = cv::imread("./images/lg_building.jpg", cv::IMREAD_GRAYSCALE);
 	if (src.empty()) {
-		std::cerr << "ÀÌ¹ÌÁö¸¦ ºÒ·¯¿Ã ¼ö ¾ø½À´Ï´Ù." << std::endl;
+		std::cerr << "ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." << std::endl;
 		return -1;
 	}
 
@@ -61,8 +61,8 @@ int run_HoughLines_Original()
 	cv::imshow("Original Image", src);
 	cv::imshow("Edge Image", src_edge);
 	cv::imshow("Line Image", src_out);
-	cv::waitKey(0); // Å° ÀÔ·ÂÀ» ±â´Ù¸³´Ï´Ù.
-	cv::destroyAllWindows(); // ¸ðµç Ã¢À» ´Ý½À´Ï´Ù.
+	cv::waitKey(0); // Å° ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½ï¿½Ù¸ï¿½ï¿½Ï´ï¿½.
+	cv::destroyAllWindows(); // ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ ï¿½Ý½ï¿½ï¿½Ï´ï¿½.
 	return 0;
 }
 
@@ -70,7 +70,7 @@ int run_HoughLines_Custom()
 {
 	cv::Mat src = cv::imread("./images/lg_building.jpg", cv::IMREAD_GRAYSCALE);
 	if (src.empty()) {
-		std::cerr << "ÀÌ¹ÌÁö¸¦ ºÒ·¯¿Ã ¼ö ¾ø½À´Ï´Ù." << std::endl;
+		std::cerr << "ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." << std::endl;
 		return -1;
 	}
 
@@ -82,7 +82,7 @@ int run_HoughLines_Custom()
 
 	std::vector<cv::Vec2f> lines;
 	//cv::HoughLines(src_edge, lines, 1, CV_PI / 180, 400);
-	custom_cv::HoughLines(src_edge, lines, 1, CV_PI / 180.0, 400);
+	custom_cv::HoughLines(src_edge, lines, 1, CV_PI / 180.0, 80);
 
 	for (size_t i = 0; i < lines.size(); i++) {
 		float rho = lines[i][0], theta = lines[i][1];
@@ -99,8 +99,8 @@ int run_HoughLines_Custom()
 	cv::imshow("Original Image", src);
 	cv::imshow("Edge Image", src_edge);
 	cv::imshow("Line Image", src_out);
-	cv::waitKey(0); // Å° ÀÔ·ÂÀ» ±â´Ù¸³´Ï´Ù.
-	cv::destroyAllWindows(); // ¸ðµç Ã¢À» ´Ý½À´Ï´Ù.
+	cv::waitKey(0); // Å° ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½ï¿½Ù¸ï¿½ï¿½Ï´ï¿½.
+	cv::destroyAllWindows(); // ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ ï¿½Ý½ï¿½ï¿½Ï´ï¿½.
 	return 0;
 }
 
@@ -108,7 +108,7 @@ int run_HarrisCornerDetector_Original()
 {
 	cv::Mat src = cv::imread("./images/shapes1.jpg", cv::IMREAD_GRAYSCALE);
 	if (src.empty()) {
-		std::cerr << "ÀÌ¹ÌÁö¸¦ ºÒ·¯¿Ã ¼ö ¾ø½À´Ï´Ù." << std::endl;
+		std::cerr << "ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." << std::endl;
 		return -1;
 	}
 
@@ -131,8 +131,8 @@ int run_HarrisCornerDetector_Original()
 
 	cv::imshow("Original Image", src);
 	cv::imshow("Result Image", dst);
-	cv::waitKey(0); // Å° ÀÔ·ÂÀ» ±â´Ù¸³´Ï´Ù.
-	cv::destroyAllWindows(); // ¸ðµç Ã¢À» ´Ý½À´Ï´Ù.
+	cv::waitKey(0); // Å° ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½ï¿½Ù¸ï¿½ï¿½Ï´ï¿½.
+	cv::destroyAllWindows(); // ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ ï¿½Ý½ï¿½ï¿½Ï´ï¿½.
 
 	return 0;
 }
@@ -141,7 +141,7 @@ int run_HarrisCornerDetector_Custom()
 {
 	cv::Mat src = cv::imread("./images/shapes1.jpg", cv::IMREAD_GRAYSCALE);
 	if (src.empty()) {
-		std::cerr << "ÀÌ¹ÌÁö¸¦ ºÒ·¯¿Ã ¼ö ¾ø½À´Ï´Ù." << std::endl;
+		std::cerr << "ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½." << std::endl;
 		return -1;
 	}
 
@@ -165,8 +165,8 @@ int run_HarrisCornerDetector_Custom()
 
 	cv::imshow("Original Image", src);
 	cv::imshow("Result Image", dst);
-	cv::waitKey(0); // Å° ÀÔ·ÂÀ» ±â´Ù¸³´Ï´Ù.
-	cv::destroyAllWindows(); // ¸ðµç Ã¢À» ´Ý½À´Ï´Ù.
+	cv::waitKey(0); // Å° ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½ï¿½Ù¸ï¿½ï¿½Ï´ï¿½.
+	cv::destroyAllWindows(); // ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ ï¿½Ý½ï¿½ï¿½Ï´ï¿½.
 
 	return 0;
 }
