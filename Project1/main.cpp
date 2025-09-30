@@ -31,7 +31,7 @@ std::vector<cv::Point> FindLocalExtrema(cv::Mat& src)
 
 int run_HoughLines_Original()
 {
-	cv::Mat src = cv::imread("D:/images/lg_building.jpg", cv::IMREAD_GRAYSCALE);
+	cv::Mat src = cv::imread("./images/lg_building.jpg", cv::IMREAD_GRAYSCALE);
 	if (src.empty()) {
 		std::cerr << "이미지를 불러올 수 없습니다." << std::endl;
 		return -1;
@@ -68,7 +68,7 @@ int run_HoughLines_Original()
 
 int run_HoughLines_Custom()
 {
-	cv::Mat src = cv::imread("D:/images/lg_building.jpg", cv::IMREAD_GRAYSCALE);
+	cv::Mat src = cv::imread("./images/lg_building.jpg", cv::IMREAD_GRAYSCALE);
 	if (src.empty()) {
 		std::cerr << "이미지를 불러올 수 없습니다." << std::endl;
 		return -1;
@@ -82,7 +82,7 @@ int run_HoughLines_Custom()
 
 	std::vector<cv::Vec2f> lines;
 	//cv::HoughLines(src_edge, lines, 1, CV_PI / 180, 400);
-	custom_cv::HoughLines(src_edge, lines, 1, CV_PI / 180, 80);
+	custom_cv::HoughLines(src_edge, lines, 1, CV_PI / 180.0, 400);
 
 	for (size_t i = 0; i < lines.size(); i++) {
 		float rho = lines[i][0], theta = lines[i][1];
@@ -106,7 +106,7 @@ int run_HoughLines_Custom()
 
 int run_HarrisCornerDetector_Original()
 {
-	cv::Mat src = cv::imread("D:/images/shapes1.jpg", cv::IMREAD_GRAYSCALE);
+	cv::Mat src = cv::imread("./images/shapes1.jpg", cv::IMREAD_GRAYSCALE);
 	if (src.empty()) {
 		std::cerr << "이미지를 불러올 수 없습니다." << std::endl;
 		return -1;
@@ -139,7 +139,7 @@ int run_HarrisCornerDetector_Original()
 
 int run_HarrisCornerDetector_Custom()
 {
-	cv::Mat src = cv::imread("D:/images/shapes1.jpg", cv::IMREAD_GRAYSCALE);
+	cv::Mat src = cv::imread("./images/shapes1.jpg", cv::IMREAD_GRAYSCALE);
 	if (src.empty()) {
 		std::cerr << "이미지를 불러올 수 없습니다." << std::endl;
 		return -1;
