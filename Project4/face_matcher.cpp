@@ -3,35 +3,33 @@
 #include <cmath>
 
 FaceMatcher::FaceMatcher() 
-    : matchThreshold(0.7), detectionScale(1.1) {
+    : matchThreshold(0.7), detectionScale(1.1), cascadeLoaded(false) {
     
     // OpenCV의 사전 훈련된 얼굴 검출기 로드
     // Haar cascade 파일들은 보통 OpenCV 설치 디렉터리에 있습니다
-    std::string cascadePath = "/usr/share/opencv4/haarcascades/haarcascade_frontalface_alt.xml";
+    std::vector<std::string> cascadePaths = {
+        "/usr/share/opencv4/haarcascades/haarcascade_frontalface_alt.xml",
+        "/usr/local/share/opencv4/haarcascades/haarcascade_frontalface_alt.xml",
+        "/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml",
+        "/usr/local/share/opencv4/haarcascades/haarcascade_frontalface_default.xml",
+        "./haarcascades/haarcascade_frontalface_alt.xml",
+        "./haarcascades/haarcascade_frontalface_default.xml",
+        "haarcascade_frontalface_alt.xml",
+        "haarcascade_frontalface_default.xml"
+    };
     
-    if (!faceClassifier.load(cascadePath)) {
-        // 대체 경로 시도
-        std::vector<std::string> alternatePaths = {
-            "/usr/local/share/opencv4/haarcascades/haarcascade_frontalface_alt.xml",
-            "./haarcascades/haarcascade_frontalface_alt.xml",
-            "haarcascade_frontalface_alt.xml"
-        };
-        
-        bool loaded = false;
-        for (const auto& path : alternatePaths) {
-            if (faceClassifier.load(path)) {
-                loaded = true;
-                std::cout << "✅ 얼굴 검출기 로드 성공: " << path << std::endl;
-                break;
-            }
+    for (const auto& path : cascadePaths) {
+        if (faceClassifier.load(path)) {
+            cascadeLoaded = true;
+            std::cout << "✅ 얼굴 검출기 로드 성공: " << path << std::endl;
+            break;
         }
-        
-        if (!loaded) {
-            std::cerr << "❌ 얼굴 검출기 로드 실패! Haar cascade 파일을 찾을 수 없습니다." << std::endl;
-            std::cerr << "📝 해결방법: haarcascade_frontalface_alt.xml 파일을 Project4 폴더에 복사하세요." << std::endl;
-        }
-    } else {
-        std::cout << "✅ 얼굴 검출기 로드 성공!" << std::endl;
+    }
+    
+    if (!cascadeLoaded) {
+        std::cerr << "❌ 얼굴 검출기 로드 실패! Haar cascade 파일을 찾을 수 없습니다." << std::endl;
+        std::cerr << "📝 해결방법: Haar cascade 파일을 다운로드하고 Project4 폴더에 복사하세요." << std::endl;
+        std::cerr << "   wget https://raw.githubusercontent.com/opencv/opencv/4.x/data/haarcascades/haarcascade_frontalface_default.xml" << std::endl;
     }
 }
 
@@ -167,26 +165,49 @@ void FaceMatcher::runFaceMatching() {
 
 std::vector<cv::Rect> FaceMatcher::detectFaces(const cv::Mat& frame) {
     std::vector<cv::Rect> faces;
-    cv::Mat grayFrame;
     
-    if (frame.channels() == 3) {
-        cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
-    } else {
-        grayFrame = frame.clone();
+    // cascade가 로드되지 않았으면 빈 벡터 반환
+    if (!cascadeLoaded || faceClassifier.empty()) {
+        static bool errorShown = false;
+        if (!errorShown) {
+            std::cerr << "⚠️ 얼굴 검출기가 로드되지 않아 얼굴 검출을 수행할 수 없습니다." << std::endl;
+            errorShown = true;
+        }
+        return faces;
     }
     
-    // 히스토그램 균등화로 조명 보정
-    cv::equalizeHist(grayFrame, grayFrame);
+    // 입력 프레임 검증
+    if (frame.empty()) {
+        std::cerr << "⚠️ 빈 프레임이 입력되었습니다." << std::endl;
+        return faces;
+    }
     
-    // 얼굴 검출
-    faceClassifier.detectMultiScale(
-        grayFrame,
-        faces,
-        detectionScale,    // scale factor
-        3,                 // min neighbors
-        0 | cv::CASCADE_SCALE_IMAGE,
-        cv::Size(30, 30)   // minimum size
-    );
+    cv::Mat grayFrame;
+    try {
+        if (frame.channels() == 3) {
+            cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
+        } else {
+            grayFrame = frame.clone();
+        }
+        
+        // 히스토그램 균등화로 조명 보정
+        cv::equalizeHist(grayFrame, grayFrame);
+        
+        // 얼굴 검출 - 안전한 파라미터 사용
+        faceClassifier.detectMultiScale(
+            grayFrame,
+            faces,
+            1.1,               // scale factor (안정적인 값)
+            3,                 // min neighbors
+            0 | cv::CASCADE_SCALE_IMAGE,
+            cv::Size(30, 30),  // minimum size
+            cv::Size()         // maximum size (기본값)
+        );
+        
+    } catch (const cv::Exception& e) {
+        std::cerr << "❌ detectMultiScale 에러: " << e.what() << std::endl;
+        std::cerr << "   프레임 크기: " << frame.size() << ", 채널: " << frame.channels() << std::endl;
+    }
     
     return faces;
 }

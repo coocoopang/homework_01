@@ -40,6 +40,7 @@ private:
     
     double matchThreshold;                   // 매칭 임계값
     double detectionScale;                   // 검출 스케일 팩터
+    bool cascadeLoaded;                      // cascade 로드 상태
     
     // 얼굴 검출
     std::vector<cv::Rect> detectFaces(const cv::Mat& frame);
