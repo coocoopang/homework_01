@@ -9,8 +9,8 @@
 vecCorner GetCorners(const vecVecDouble& harrisResponse, double threshold)
 {
 	vecCorner corners;
-	int height = harrisResponse.size();
-	int width = harrisResponse[0].size();
+	int height = (int)harrisResponse.size();
+	int width = (int)harrisResponse[0].size();
 
 	// 1. R 값의 최댓값을 찾아 임계값을 절대값으로 변환합니다.
 	//    이렇게 하면 이미지의 전반적인 밝기나 대비에 상관없이 일관된 검출이 가능합니다.
@@ -109,8 +109,8 @@ void ComputeGradients(const vecVecDouble& grayImage,
 	vecVecDouble& gradX,
 	vecVecDouble& gradY)
 {
-	int height = grayImage.size();
-	int width = grayImage[0].size();
+	int height = (int)grayImage.size();
+	int width = (int)grayImage[0].size();
 
 	// Sobel 커널(마스크): 이미지의 미분(엣지)을 근사하는 데 사용되는 행렬
 	double sobelX[3][3] = { {-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1} }; // x축(세로선) 엣지 검출
@@ -146,8 +146,8 @@ vecVecDouble ComputeHarrisResponse(
 	const vecVecDouble& gradY,
 	int windowSize, double k)
 {
-	int height = gradX.size();
-	int width = gradX[0].size();
+	int height = (int)gradX.size();
+	int width = (int)gradX[0].size();
 	vecVecDouble harrisResponse(height, vecDouble(width, 0.0));
 
 	// 최적화를 위해 Ix*Ix, Iy*Iy, Ix*Iy 값을 미리 계산하여 저장
@@ -222,9 +222,9 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
  */
 void SaveHarrisResponseMap(const vecVecDouble& harrisResponse, const WCHAR* filename)
 {
-	int height = harrisResponse.size();
+	int height = (int)harrisResponse.size();
 	if (height == 0) return;
-	int width = harrisResponse[0].size();
+	int width = (int)harrisResponse[0].size();
 	if (width == 0) return;
 
 	// 1. 시각화를 위해 R 값들을 0~255 범위로 변환하는 정규화 과정
