@@ -1,0 +1,7 @@
+/home/user/webapp/Project4/build/CMakeFiles/face_matcher.dir
+/home/user/webapp/Project4/build/CMakeFiles/edit_cache.dir
+/home/user/webapp/Project4/build/CMakeFiles/rebuild_cache.dir
+/home/user/webapp/Project4/build/CMakeFiles/list_install_components.dir
+/home/user/webapp/Project4/build/CMakeFiles/install.dir
+/home/user/webapp/Project4/build/CMakeFiles/install/local.dir
+/home/user/webapp/Project4/build/CMakeFiles/install/strip.dir
