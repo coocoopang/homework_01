@@ -12,8 +12,8 @@ vecLine GetLinesFromAccumulator(
 	int threshold, int maxLines)
 {
 	vecLine allCandidates; // 모든 직선 후보를 저장할 벡터
-	int rhoSize = accumulator.size();         // 누산기의 높이 (rho의 범위)
-	int thetaSize = accumulator[0].size();    // 누산기의 너비 (theta의 범위)
+	int rhoSize = (int)accumulator.size();         // 누산기의 높이 (rho의 범위)
+	int thetaSize = (int)accumulator[0].size();    // 누산기의 너비 (theta의 범위)
 	int rhoCenter = rhoSize / 2;              // rho 인덱스 계산을 위한 중심점
 
 	// 1. 비최대 억제(NMS)를 통해 지역 최댓값(local maxima) 찾기
@@ -118,10 +118,10 @@ void PerformHoughTransform(
 	int width, int height,
 	double& rhoMax, vecDouble& sinTable, vecDouble& cosTable)
 {
-	int thetaSize = accumulator[0].size();
+	int thetaSize = (int)accumulator[0].size();
 	// rho의 최댓값은 이미지의 대각선 길이
 	rhoMax = sqrt(width * width + height * height);
-	int rhoSize = accumulator.size();
+	int rhoSize = (int)accumulator.size();
 	int rhoCenter = rhoSize / 2;
 
 	// 최적화: 반복문 안에서 sin/cos 함수를 계속 호출하는 것을 피하기 위해 미리 계산
@@ -265,7 +265,7 @@ int main()
 	GdiplusInitializer gdiplusInitializer;
 
 	// 1. 이미지 로드
-	Bitmap* originalBmp = new Bitmap(L"./images/building_01.png");
+	Bitmap* originalBmp = new Bitmap(L"./images/line_01.png");
 	if (originalBmp->GetLastStatus() != Ok) {
 		std::cerr << "이미지 파일을 열 수 없습니다." << std::endl;
 		return -1;
@@ -289,28 +289,13 @@ int main()
 	PerformHoughTransform(edgeMap, accumulator, width, height, rhoMax, sinTable, cosTable);
 
 	// 4. 직선 추출 및 필터링
-	// 4-1. 모든 후보 직선 추출
 	int lineThreshold = 100; // 직선으로 판단할 최소 투표 수
-	int maxLinesToDraw = 50;   // 점수 순으로 정렬 후 상위 50개만 고려
+	int maxLinesToDraw = 10; // 점수 순으로 정렬 후 상위 10개만 고려
 	vecLine allDetectedLines = GetLinesFromAccumulator(accumulator, lineThreshold, maxLinesToDraw);
 	std::cout << "Total detected lines (before filtering): " << allDetectedLines.size() << std::endl;
 
-	// 4-2. 수평선 필터링
-	vecLine horizontalLines;
-	const double angle_tolerance_degrees = 10.0; // 90도에서 +-10도 범위의 직선을 수평선으로 간주
-	const double angle_tolerance_radians = angle_tolerance_degrees * M_PI / 180.0;
-	const double ninety_degrees_radians = M_PI / 2.0; // 90도를 라디안으로 표현
-
-	for (const auto& line : allDetectedLines) {
-		// 직선의 theta 값이 90도(라디안)와의 차이가 허용 오차 이내인지 확인
-		if (std::abs(line.theta - ninety_degrees_radians) <= angle_tolerance_radians) {
-			horizontalLines.push_back(line);
-		}
-	}
-	std::cout << "Detected horizontal lines (after filtering): " << horizontalLines.size() << std::endl;
-
-	// 5. 필터링된 수평선만 그리기
-	DrawLines(originalBmp, horizontalLines);
+	// 5. 검출된 직선 그리기
+	DrawLines(originalBmp, allDetectedLines);
 
 	// 6. 최종 결과 이미지 저장
 	CLSID pngClsid;
