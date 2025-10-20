@@ -1,4 +1,5 @@
 #include "face_matcher.h"
+#include <windows.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -26,7 +27,7 @@ void printUsage() {
     std::cout << "팁:" << std::endl;
     std::cout << " - 조명이 적당한 곳에서 테스트하세요" << std::endl;
     std::cout << " - 정면을 보는 얼굴 사진을 사용하세요" << std::endl;
-    std::cout << " - MP4 파일은 ./videos/ 폴더에 준비하세요" << std::endl;
+    std::cout << " - MP4 파일은 ./images/ 폴더에 준비하세요" << std::endl;
     std::cout << std::endl;
 }
 
@@ -49,6 +50,12 @@ bool downloadHaarCascade() {
 
 int main() 
 {
+    // 콘솔 출력 코드 페이지를 UTF-8로 변경
+    SetConsoleOutputCP(CP_UTF8);
+
+    // (선택) 입력 코드 페이지도 UTF-8로 변경
+    SetConsoleCP(CP_UTF8);
+
     printUsage();
     
     // Haar cascade 파일 확인 및 다운로드
@@ -97,14 +104,8 @@ int main()
         }
     } else if (choice == "2") {
         // 비디오 파일 모드
-        std::cout << "비디오 파일 경로를 입력하세요 (예: ./videos/test.mp4): ";
         std::string videoPath;
-        std::getline(std::cin, videoPath);
-        
-        if (videoPath.empty()) {
-            std::cerr << "비디오 파일 경로가 입력되지 않았습니다!" << std::endl;
-            return -1;
-        }
+        videoPath = "./images/my_video.mp4";
         
         if (matcher.loadVideoFile(videoPath)) {
             success = true;
