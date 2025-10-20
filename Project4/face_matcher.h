@@ -9,7 +9,7 @@
 
 /**
  * 실시간 얼굴 매칭 시스템
- * - 웹캠으로 실시간 영상 입력
+ * - 웹캠 또는 MP4 비디오 파일 입력
  * - 기준 얼굴 이미지와 매칭 검사
  * - 매칭되는 얼굴에 빨간색 테두리 표시
  */
@@ -24,8 +24,14 @@ public:
     // 웹캠 시작
     bool startWebcam(int deviceId = 0);
     
-    // 실시간 얼굴 매칭 실행
+    // MP4 비디오 파일 로드
+    bool loadVideoFile(const std::string& videoPath);
+    
+    // 실시간 얼굴 매칭 실행 (웹캠 또는 비디오 파일)
     void runFaceMatching();
+    
+    // 비디오 파일로 얼굴 매칭 실행
+    void runVideoFaceMatching();
     
     // 매칭 임계값 설정
     void setMatchThreshold(double threshold) { matchThreshold = threshold; }
@@ -36,7 +42,9 @@ public:
 private:
     cv::CascadeClassifier faceClassifier;    // 얼굴 검출기
     cv::Mat referenceFace;                   // 기준 얼굴 이미지
-    cv::VideoCapture webcam;                 // 웹캠
+    cv::VideoCapture videoCapture;           // 웹캠 또는 비디오 파일
+    std::string videoSource;                 // 비디오 소스 ("webcam" 또는 파일 경로)
+    bool isVideoFile;                        // 비디오 파일 여부
     
     double matchThreshold;                   // 매칭 임계값
     double detectionScale;                   // 검출 스케일 팩터

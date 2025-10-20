@@ -3,7 +3,8 @@
 #include <cmath>
 
 FaceMatcher::FaceMatcher() 
-    : matchThreshold(0.7), detectionScale(1.1), cascadeLoaded(false) {
+    : matchThreshold(0.7), detectionScale(1.1), 
+      videoSource(""), isVideoFile(false), cascadeLoaded(false) {
     
     // OpenCV의 사전 훈련된 얼굴 검출기 로드
     // Haar cascade 파일들은 보통 OpenCV 설치 디렉터리에 있습니다
@@ -34,8 +35,8 @@ FaceMatcher::FaceMatcher()
 }
 
 FaceMatcher::~FaceMatcher() {
-    if (webcam.isOpened()) {
-        webcam.release();
+    if (videoCapture.isOpened()) {
+        videoCapture.release();
     }
 }
 
@@ -71,24 +72,50 @@ bool FaceMatcher::loadReferenceFace(const std::string& imagePath) {
 }
 
 bool FaceMatcher::startWebcam(int deviceId) {
-    webcam.open(deviceId);
-    if (!webcam.isOpened()) {
+    videoCapture.open(deviceId);
+    if (!videoCapture.isOpened()) {
         std::cerr << "❌ 웹캠을 열 수 없습니다! (Device ID: " << deviceId << ")" << std::endl;
         return false;
     }
     
     // 웹캠 설정
-    webcam.set(cv::CAP_PROP_FRAME_WIDTH, 640);
-    webcam.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
-    webcam.set(cv::CAP_PROP_FPS, 30);
+    videoCapture.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    videoCapture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+    videoCapture.set(cv::CAP_PROP_FPS, 30);
+    
+    videoSource = "webcam";
+    isVideoFile = false;
     
     std::cout << "✅ 웹캠 시작 완료!" << std::endl;
     return true;
 }
 
+bool FaceMatcher::loadVideoFile(const std::string& videoPath) {
+    videoCapture.open(videoPath);
+    if (!videoCapture.isOpened()) {
+        std::cerr << "❌ 비디오 파일을 열 수 없습니다: " << videoPath << std::endl;
+        return false;
+    }
+    
+    videoSource = videoPath;
+    isVideoFile = true;
+    
+    // 비디오 정보 출력
+    int totalFrames = static_cast<int>(videoCapture.get(cv::CAP_PROP_FRAME_COUNT));
+    double fps = videoCapture.get(cv::CAP_PROP_FPS);
+    int width = static_cast<int>(videoCapture.get(cv::CAP_PROP_FRAME_WIDTH));
+    int height = static_cast<int>(videoCapture.get(cv::CAP_PROP_FRAME_HEIGHT));
+    
+    std::cout << "✅ 비디오 파일 로드 완료!" << std::endl;
+    std::cout << "📁 파일: " << videoPath << std::endl;
+    std::cout << "📊 정보: " << width << "x" << height << ", " << fps << " FPS, " << totalFrames << " 프레임" << std::endl;
+    
+    return true;
+}
+
 void FaceMatcher::runFaceMatching() {
-    if (!webcam.isOpened()) {
-        std::cerr << "❌ 웹캠이 열려있지 않습니다!" << std::endl;
+    if (!videoCapture.isOpened()) {
+        std::cerr << "❌ 비디오 소스가 열려있지 않습니다!" << std::endl;
         return;
     }
     
@@ -97,21 +124,35 @@ void FaceMatcher::runFaceMatching() {
         return;
     }
     
-    std::cout << "🎥 실시간 얼굴 매칭 시작!" << std::endl;
+    std::string sourceType = isVideoFile ? "비디오 파일" : "웹캠";
+    std::cout << "🎥 " << sourceType << " 얼굴 매칭 시작!" << std::endl;
+    if (isVideoFile) {
+        std::cout << "📁 파일: " << videoSource << std::endl;
+    }
+    
     std::cout << "📋 조작법:" << std::endl;
     std::cout << "   - ESC 또는 'q': 종료" << std::endl;
+    std::cout << "   - SPACE: 일시정지/재생 (비디오 파일)" << std::endl;
     std::cout << "   - 't': 매칭 임계값 조정" << std::endl;
     std::cout << "   - 's': 스크린샷 저장" << std::endl;
     std::cout << std::endl;
     
     cv::Mat frame;
     int frameCount = 0;
+    int totalFrames = isVideoFile ? static_cast<int>(videoCapture.get(cv::CAP_PROP_FRAME_COUNT)) : 0;
+    bool paused = false;
     
     while (true) {
-        webcam >> frame;
-        if (frame.empty()) break;
-        
-        frameCount++;
+        if (!paused || !isVideoFile) {
+            videoCapture >> frame;
+            if (frame.empty()) {
+                if (isVideoFile) {
+                    std::cout << "📹 비디오 재생 완료!" << std::endl;
+                }
+                break;
+            }
+            frameCount++;
+        }
         
         // 얼굴 검출
         std::vector<cv::Rect> faces = detectFaces(frame);
@@ -131,20 +172,39 @@ void FaceMatcher::runFaceMatching() {
         }
         
         // 정보 표시
-        cv::putText(frame, "Face Matching System", cv::Point(10, 30), 
+        std::string title = isVideoFile ? "Face Matching - Video" : "Face Matching - Webcam";
+        cv::putText(frame, title, cv::Point(10, 30), 
                    cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+        
         cv::putText(frame, "Threshold: " + std::to_string(int(matchThreshold * 100)) + "%", 
                    cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
         cv::putText(frame, "Faces: " + std::to_string(faces.size()), 
                    cv::Point(10, 80), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
         
-        // 화면 출력
-        cv::imshow("Face Matching - Webcam", frame);
+        // 비디오 파일인 경우 프레임 정보 표시
+        if (isVideoFile) {
+            std::string frameInfo = "Frame: " + std::to_string(frameCount) + "/" + std::to_string(totalFrames);
+            cv::putText(frame, frameInfo, cv::Point(10, 100), 
+                       cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+            
+            if (paused) {
+                cv::putText(frame, "PAUSED", cv::Point(frame.cols/2 - 50, 50), 
+                           cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 255), 3);
+            }
+        }
         
-        // 키 입력 처리
-        int key = cv::waitKey(1) & 0xFF;
+        // 화면 출력
+        cv::imshow(title, frame);
+        
+        // 키 입력 처리 - 비디오 파일의 경우 적절한 지연시간 설정
+        int waitTime = isVideoFile ? 30 : 1;  // 비디오 파일: 30ms, 웹캠: 1ms
+        int key = cv::waitKey(waitTime) & 0xFF;
+        
         if (key == 27 || key == 'q') { // ESC 또는 'q'
             break;
+        } else if (key == ' ' && isVideoFile) { // SPACE - 일시정지/재생
+            paused = !paused;
+            std::cout << (paused ? "⏸️ 일시정지" : "▶️ 재생") << std::endl;
         } else if (key == 't') { // 임계값 조정
             std::cout << "현재 임계값: " << int(matchThreshold * 100) << "%" << std::endl;
             std::cout << "새로운 임계값 입력 (0-100): ";
@@ -161,6 +221,11 @@ void FaceMatcher::runFaceMatching() {
     
     cv::destroyAllWindows();
     std::cout << "👋 얼굴 매칭 종료!" << std::endl;
+}
+
+void FaceMatcher::runVideoFaceMatching() {
+    // 기본 runFaceMatching()과 동일하지만 비디오 파일 전용 기능 추가
+    runFaceMatching();
 }
 
 std::vector<cv::Rect> FaceMatcher::detectFaces(const cv::Mat& frame) {
