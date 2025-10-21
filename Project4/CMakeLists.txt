@@ -5,8 +5,18 @@ project(FaceMatchingSystem)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# OpenCV 찾기
-find_package(OpenCV REQUIRED)
+# OpenCV 찾기 (특징점 매칭에 필요한 모듈들 포함)
+find_package(OpenCV REQUIRED COMPONENTS 
+    core
+    imgproc 
+    highgui
+    imgcodecs
+    objdetect
+    videoio
+    features2d
+    calib3d
+    flann
+)
 
 # 컴파일러 플래그
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")

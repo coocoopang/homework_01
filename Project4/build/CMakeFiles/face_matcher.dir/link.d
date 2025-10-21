@@ -4,59 +4,14 @@ face_matcher: \
   /usr/lib/gcc/x86_64-linux-gnu/14/crtbeginS.o \
   CMakeFiles/face_matcher.dir/main.cpp.o \
   CMakeFiles/face_matcher.dir/face_matcher.cpp.o \
-  /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_alphamat.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_aruco.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_bgsegm.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_bioinspired.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_ccalib.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_cvv.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_dnn_objdetect.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_dnn_superres.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_dpm.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_face.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_freetype.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_fuzzy.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_hdf.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_hfs.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_img_hash.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_intensity_transform.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_line_descriptor.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_mcc.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_quality.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_rapid.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_reg.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_rgbd.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_saliency.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_shape.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_signal.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_stereo.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_structured_light.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_superres.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_surface_matching.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_tracking.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_videostab.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_viz.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_wechat_qrcode.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_xobjdetect.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_xphoto.so.4.10.0 \
   /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_datasets.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_plot.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_text.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_ml.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_phase_unwrapping.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_optflow.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_ximgproc.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_video.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_videoio.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_imgcodecs.so.4.10.0 \
   /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so.4.10.0 \
+  /usr/lib/x86_64-linux-gnu/libopencv_videoio.so.4.10.0 \
   /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_dnn.so.4.10.0 \
+  /usr/lib/x86_64-linux-gnu/libopencv_imgcodecs.so.4.10.0 \
   /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.4.10.0 \
   /usr/lib/x86_64-linux-gnu/libopencv_flann.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_photo.so.4.10.0 \
+  /usr/lib/x86_64-linux-gnu/libopencv_dnn.so.4.10.0 \
   /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.4.10.0 \
   /usr/lib/x86_64-linux-gnu/libopencv_core.so.4.10.0 \
   /usr/lib/gcc/x86_64-linux-gnu/14/libstdc++.so \
@@ -91,6 +46,7 @@ face_matcher: \
   /lib/x86_64-linux-gnu/libQt5Widgets.so.5 \
   /lib/x86_64-linux-gnu/libQt5Gui.so.5 \
   /lib/x86_64-linux-gnu/libQt5Core.so.5 \
+  /usr/lib/x86_64-linux-gnu/libopencv_dnn.so.4.10.0 \
   /lib/x86_64-linux-gnu/libm.so.6 \
   /lib/x86_64-linux-gnu/libdc1394.so.25 \
   /lib/x86_64-linux-gnu/libgstbase-1.0.so.0 \
@@ -117,8 +73,6 @@ face_matcher: \
   /lib/x86_64-linux-gnu/libOpenEXR-3_1.so.30 \
   /lib/x86_64-linux-gnu/libgdal.so.36 \
   /lib/x86_64-linux-gnu/libgdcmDSED.so.3.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_dnn.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.4.10.0 \
   /lib/x86_64-linux-gnu/libz.so.1 \
   /lib/x86_64-linux-gnu/libGLX.so.0 \
   /lib/x86_64-linux-gnu/liblapack.so.3 \
@@ -134,6 +88,7 @@ face_matcher: \
   /lib/x86_64-linux-gnu/libicuuc.so.76 \
   /lib/x86_64-linux-gnu/libpcre2-16.so.0 \
   /lib/x86_64-linux-gnu/libzstd.so.1 \
+  /lib/x86_64-linux-gnu/libprotobuf.so.32 \
   /lib/x86_64-linux-gnu/libraw1394.so.11 \
   /lib/x86_64-linux-gnu/libusb-1.0.so.0 \
   /lib/x86_64-linux-gnu/libgmodule-2.0.so.0 \
@@ -243,9 +198,6 @@ face_matcher: \
   /lib/x86_64-linux-gnu/libproj.so.25 \
   /lib/x86_64-linux-gnu/libdfalt.so.0 \
   /lib/x86_64-linux-gnu/libmfhdfalt.so.0 \
-  /lib/x86_64-linux-gnu/libprotobuf.so.32 \
-  /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.4.10.0 \
-  /usr/lib/x86_64-linux-gnu/libopencv_flann.so.4.10.0 \
   /lib/x86_64-linux-gnu/libgfortran.so.5 \
   /lib/x86_64-linux-gnu/libfreetype.so.6 \
   /lib/x86_64-linux-gnu/libgraphite2.so.3 \
@@ -385,111 +337,21 @@ CMakeFiles/face_matcher.dir/main.cpp.o:
 
 CMakeFiles/face_matcher.dir/face_matcher.cpp.o:
 
-/usr/lib/x86_64-linux-gnu/libopencv_stitching.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_alphamat.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_aruco.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_bgsegm.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_bioinspired.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_ccalib.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_cvv.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_dnn_objdetect.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_dnn_superres.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_dpm.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_face.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_freetype.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_fuzzy.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_hdf.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_hfs.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_img_hash.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_intensity_transform.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_line_descriptor.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_mcc.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_quality.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_rapid.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_reg.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_rgbd.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_saliency.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_shape.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_signal.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_stereo.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_structured_light.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_superres.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_surface_matching.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_tracking.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_videostab.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_viz.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_wechat_qrcode.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_xobjdetect.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_xphoto.so.4.10.0:
-
 /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_datasets.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_plot.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_text.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_ml.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_phase_unwrapping.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_optflow.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_ximgproc.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_video.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_videoio.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_imgcodecs.so.4.10.0:
 
 /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so.4.10.0:
 
+/usr/lib/x86_64-linux-gnu/libopencv_videoio.so.4.10.0:
+
 /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.4.10.0:
 
-/usr/lib/x86_64-linux-gnu/libopencv_dnn.so.4.10.0:
+/usr/lib/x86_64-linux-gnu/libopencv_imgcodecs.so.4.10.0:
 
 /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.4.10.0:
 
 /usr/lib/x86_64-linux-gnu/libopencv_flann.so.4.10.0:
 
-/usr/lib/x86_64-linux-gnu/libopencv_photo.so.4.10.0:
+/usr/lib/x86_64-linux-gnu/libopencv_dnn.so.4.10.0:
 
 /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.4.10.0:
 
@@ -559,6 +421,8 @@ CMakeFiles/face_matcher.dir/face_matcher.cpp.o:
 
 /lib/x86_64-linux-gnu/libQt5Core.so.5:
 
+/usr/lib/x86_64-linux-gnu/libopencv_dnn.so.4.10.0:
+
 /lib/x86_64-linux-gnu/libm.so.6:
 
 /lib/x86_64-linux-gnu/libdc1394.so.25:
@@ -611,10 +475,6 @@ CMakeFiles/face_matcher.dir/face_matcher.cpp.o:
 
 /lib/x86_64-linux-gnu/libgdcmDSED.so.3.0:
 
-/usr/lib/x86_64-linux-gnu/libopencv_dnn.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.4.10.0:
-
 /lib/x86_64-linux-gnu/libz.so.1:
 
 /lib/x86_64-linux-gnu/libGLX.so.0:
@@ -644,6 +504,8 @@ CMakeFiles/face_matcher.dir/face_matcher.cpp.o:
 /lib/x86_64-linux-gnu/libpcre2-16.so.0:
 
 /lib/x86_64-linux-gnu/libzstd.so.1:
+
+/lib/x86_64-linux-gnu/libprotobuf.so.32:
 
 /lib/x86_64-linux-gnu/libraw1394.so.11:
 
@@ -862,12 +724,6 @@ CMakeFiles/face_matcher.dir/face_matcher.cpp.o:
 /lib/x86_64-linux-gnu/libdfalt.so.0:
 
 /lib/x86_64-linux-gnu/libmfhdfalt.so.0:
-
-/lib/x86_64-linux-gnu/libprotobuf.so.32:
-
-/usr/lib/x86_64-linux-gnu/libopencv_features2d.so.4.10.0:
-
-/usr/lib/x86_64-linux-gnu/libopencv_flann.so.4.10.0:
 
 /lib/x86_64-linux-gnu/libgfortran.so.5:
 

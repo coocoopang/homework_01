@@ -1,13 +1,14 @@
 #include "face_matcher.h"
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 
 FaceMatcher::FaceMatcher() 
-    : matchThreshold(0.7), detectionScale(1.1), 
-      videoSource(""), isVideoFile(false), cascadeLoaded(false) {
+    : videoSource(""), isVideoFile(false), cascadeLoaded(false),
+      matchThreshold(0.7), detectorType("SIFT"), matcherType("BF"),
+      minMatchCount(10), maxDistanceRatio(0.75) {
     
     // OpenCV의 사전 훈련된 얼굴 검출기 로드
-    // Haar cascade 파일들은 보통 OpenCV 설치 디렉터리에 있습니다
     std::vector<std::string> cascadePaths = {
         "/usr/share/opencv4/haarcascades/haarcascade_frontalface_alt.xml",
         "/usr/local/share/opencv4/haarcascades/haarcascade_frontalface_alt.xml",
@@ -32,6 +33,15 @@ FaceMatcher::FaceMatcher()
         std::cerr << "📝 해결방법: Haar cascade 파일을 다운로드하고 Project4 폴더에 복사하세요." << std::endl;
         std::cerr << "   wget https://raw.githubusercontent.com/opencv/opencv/4.x/data/haarcascades/haarcascade_frontalface_default.xml" << std::endl;
     }
+    
+    // 기본 특징점 검출기와 매처 생성
+    detector = FeatureMatchingUtils::createFeatureDetector(detectorType);
+    matcher = FeatureMatchingUtils::createDescriptorMatcher(matcherType, detectorType);
+    
+    std::cout << "🔧 특징점 기반 얼굴 매칭 시스템 초기화 완료!" << std::endl;
+    std::cout << "   - 특징점 검출기: " << detectorType << std::endl;
+    std::cout << "   - 매처: " << matcherType << std::endl;
+    std::cout << "   - 최소 매칭 개수: " << minMatchCount << std::endl;
 }
 
 FaceMatcher::~FaceMatcher() {
@@ -41,14 +51,14 @@ FaceMatcher::~FaceMatcher() {
 }
 
 bool FaceMatcher::loadReferenceFace(const std::string& imagePath) {
-    cv::Mat image = cv::imread(imagePath, cv::IMREAD_COLOR);
-    if (image.empty()) {
+    referenceFaceImage = cv::imread(imagePath, cv::IMREAD_COLOR);
+    if (referenceFaceImage.empty()) {
         std::cerr << "❌ 기준 얼굴 이미지를 로드할 수 없습니다: " << imagePath << std::endl;
         return false;
     }
     
     // 얼굴 검출
-    std::vector<cv::Rect> faces = detectFaces(image);
+    std::vector<cv::Rect> faces = detectFaces(referenceFaceImage);
     if (faces.empty()) {
         std::cerr << "❌ 기준 이미지에서 얼굴을 찾을 수 없습니다!" << std::endl;
         return false;
@@ -61,13 +71,27 @@ bool FaceMatcher::loadReferenceFace(const std::string& imagePath) {
         });
     
     // 얼굴 영역 확장 및 추출
-    cv::Rect expandedFace = FaceMatchingUtils::expandFaceRect(largestFace, image.size());
-    referenceFace = image(expandedFace).clone();
+    cv::Rect expandedFace = FeatureMatchingUtils::expandFaceRect(largestFace, referenceFaceImage.size());
+    cv::Mat faceROI = referenceFaceImage(expandedFace).clone();
     
     // 전처리
-    referenceFace = preprocessFace(referenceFace);
+    faceROI = preprocessFace(faceROI);
     
-    std::cout << "✅ 기준 얼굴 이미지 로드 완료: " << referenceFace.size() << std::endl;
+    // 기준 얼굴에서 특징점 추출
+    extractFeatures(faceROI, referenceKeypoints, referenceDescriptors);
+    
+    if (referenceKeypoints.empty()) {
+        std::cerr << "❌ 기준 얼굴에서 특징점을 추출할 수 없습니다!" << std::endl;
+        return false;
+    }
+    
+    double featureDensity = FeatureMatchingUtils::calculateFeatureDensity(referenceKeypoints, faceROI.size());
+    
+    std::cout << "✅ 기준 얼굴 특징점 추출 완료!" << std::endl;
+    std::cout << "   - 이미지 크기: " << faceROI.size() << std::endl;
+    std::cout << "   - 특징점 개수: " << referenceKeypoints.size() << std::endl;
+    std::cout << "   - 특징점 밀도: " << std::fixed << std::setprecision(4) << featureDensity << " points/pixel²" << std::endl;
+    
     return true;
 }
 
@@ -119,13 +143,13 @@ void FaceMatcher::runFaceMatching() {
         return;
     }
     
-    if (referenceFace.empty()) {
-        std::cerr << "❌ 기준 얼굴 이미지가 로드되지 않았습니다!" << std::endl;
+    if (referenceKeypoints.empty() || referenceDescriptors.empty()) {
+        std::cerr << "❌ 기준 얼굴 특징점이 준비되지 않았습니다!" << std::endl;
         return;
     }
     
     std::string sourceType = isVideoFile ? "비디오 파일" : "웹캠";
-    std::cout << "🎥 " << sourceType << " 얼굴 매칭 시작!" << std::endl;
+    std::cout << "🎥 " << sourceType << " 특징점 매칭 시작!" << std::endl;
     if (isVideoFile) {
         std::cout << "📁 파일: " << videoSource << std::endl;
     }
@@ -135,6 +159,7 @@ void FaceMatcher::runFaceMatching() {
     std::cout << "   - SPACE: 일시정지/재생 (비디오 파일)" << std::endl;
     std::cout << "   - 't': 매칭 임계값 조정" << std::endl;
     std::cout << "   - 's': 스크린샷 저장" << std::endl;
+    std::cout << "   - 'd': 특징점 검출기 변경 (SIFT ↔ ORB)" << std::endl;
     std::cout << std::endl;
     
     cv::Mat frame;
@@ -157,22 +182,23 @@ void FaceMatcher::runFaceMatching() {
         // 얼굴 검출
         std::vector<cv::Rect> faces = detectFaces(frame);
         
-        // 각 검출된 얼굴에 대해 매칭 검사
+        // 각 검출된 얼굴에 대해 특징점 매칭 수행
         for (const auto& faceRect : faces) {
             // 얼굴 영역 확장 및 추출
-            cv::Rect expandedFace = FaceMatchingUtils::expandFaceRect(faceRect, frame.size());
+            cv::Rect expandedFace = FeatureMatchingUtils::expandFaceRect(faceRect, frame.size());
             cv::Mat detectedFace = frame(expandedFace);
             
-            // 얼굴 매칭
-            double matchScore = matchFace(referenceFace, detectedFace);
-            bool isMatch = matchScore > matchThreshold;
+            // 특징점 기반 얼굴 매칭
+            double matchScore = matchFaceByFeatures(detectedFace);
+            bool isMatch = matchScore >= matchThreshold;
             
             // 결과 표시
-            drawMatchResult(frame, expandedFace, matchScore, isMatch);
+            int matchCount = static_cast<int>(matchScore * 100); // 임시로 백분율을 매칭 개수로 사용
+            drawMatchResult(frame, expandedFace, matchScore, isMatch, matchCount);
         }
         
         // 정보 표시
-        std::string title = isVideoFile ? "Face Matching - Video" : "Face Matching - Webcam";
+        std::string title = isVideoFile ? "Feature Matching - Video" : "Feature Matching - Webcam";
         cv::putText(frame, title, cv::Point(10, 30), 
                    cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
         
@@ -180,11 +206,15 @@ void FaceMatcher::runFaceMatching() {
                    cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
         cv::putText(frame, "Faces: " + std::to_string(faces.size()), 
                    cv::Point(10, 80), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+        cv::putText(frame, "Detector: " + detectorType, 
+                   cv::Point(10, 100), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+        cv::putText(frame, "Ref Features: " + std::to_string(referenceKeypoints.size()), 
+                   cv::Point(10, 120), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
         
         // 비디오 파일인 경우 프레임 정보 표시
         if (isVideoFile) {
             std::string frameInfo = "Frame: " + std::to_string(frameCount) + "/" + std::to_string(totalFrames);
-            cv::putText(frame, frameInfo, cv::Point(10, 100), 
+            cv::putText(frame, frameInfo, cv::Point(10, 140), 
                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
             
             if (paused) {
@@ -196,8 +226,8 @@ void FaceMatcher::runFaceMatching() {
         // 화면 출력
         cv::imshow(title, frame);
         
-        // 키 입력 처리 - 비디오 파일의 경우 적절한 지연시간 설정
-        int waitTime = isVideoFile ? 30 : 1;  // 비디오 파일: 30ms, 웹캠: 1ms
+        // 키 입력 처리
+        int waitTime = isVideoFile ? 30 : 1;
         int key = cv::waitKey(waitTime) & 0xFF;
         
         if (key == 27 || key == 'q') { // ESC 또는 'q'
@@ -216,22 +246,38 @@ void FaceMatcher::runFaceMatching() {
             std::string filename = "screenshot_" + std::to_string(frameCount) + ".jpg";
             cv::imwrite(filename, frame);
             std::cout << "📸 스크린샷 저장: " << filename << std::endl;
+        } else if (key == 'd') { // 특징점 검출기 변경
+            detectorType = (detectorType == "SIFT") ? "ORB" : "SIFT";
+            detector = FeatureMatchingUtils::createFeatureDetector(detectorType);
+            matcher = FeatureMatchingUtils::createDescriptorMatcher(matcherType, detectorType);
+            
+            // 기준 얼굴 특징점 재추출
+            if (!referenceFaceImage.empty()) {
+                std::vector<cv::Rect> faces = detectFaces(referenceFaceImage);
+                if (!faces.empty()) {
+                    cv::Rect largestFace = *std::max_element(faces.begin(), faces.end(), 
+                        [](const cv::Rect& a, const cv::Rect& b) { return a.area() < b.area(); });
+                    cv::Rect expandedFace = FeatureMatchingUtils::expandFaceRect(largestFace, referenceFaceImage.size());
+                    cv::Mat faceROI = preprocessFace(referenceFaceImage(expandedFace));
+                    extractFeatures(faceROI, referenceKeypoints, referenceDescriptors);
+                }
+            }
+            
+            std::cout << "🔄 특징점 검출기 변경: " << detectorType << " (기준 특징점: " << referenceKeypoints.size() << "개)" << std::endl;
         }
     }
     
     cv::destroyAllWindows();
-    std::cout << "👋 얼굴 매칭 종료!" << std::endl;
+    std::cout << "👋 특징점 매칭 종료!" << std::endl;
 }
 
 void FaceMatcher::runVideoFaceMatching() {
-    // 기본 runFaceMatching()과 동일하지만 비디오 파일 전용 기능 추가
     runFaceMatching();
 }
 
 std::vector<cv::Rect> FaceMatcher::detectFaces(const cv::Mat& frame) {
     std::vector<cv::Rect> faces;
     
-    // cascade가 로드되지 않았으면 빈 벡터 반환
     if (!cascadeLoaded || faceClassifier.empty()) {
         static bool errorShown = false;
         if (!errorShown) {
@@ -241,7 +287,6 @@ std::vector<cv::Rect> FaceMatcher::detectFaces(const cv::Mat& frame) {
         return faces;
     }
     
-    // 입력 프레임 검증
     if (frame.empty()) {
         std::cerr << "⚠️ 빈 프레임이 입력되었습니다." << std::endl;
         return faces;
@@ -255,96 +300,192 @@ std::vector<cv::Rect> FaceMatcher::detectFaces(const cv::Mat& frame) {
             grayFrame = frame.clone();
         }
         
-        // 히스토그램 균등화로 조명 보정
         cv::equalizeHist(grayFrame, grayFrame);
         
-        // 얼굴 검출 - 안전한 파라미터 사용
         faceClassifier.detectMultiScale(
             grayFrame,
             faces,
-            1.1,               // scale factor (안정적인 값)
-            3,                 // min neighbors
+            1.1,
+            3,
             0 | cv::CASCADE_SCALE_IMAGE,
-            cv::Size(30, 30),  // minimum size
-            cv::Size()         // maximum size (기본값)
+            cv::Size(30, 30),
+            cv::Size()
         );
         
     } catch (const cv::Exception& e) {
         std::cerr << "❌ detectMultiScale 에러: " << e.what() << std::endl;
-        std::cerr << "   프레임 크기: " << frame.size() << ", 채널: " << frame.channels() << std::endl;
     }
     
     return faces;
 }
 
-double FaceMatcher::matchFace(const cv::Mat& face1, const cv::Mat& face2) {
-    // 두 가지 방법을 조합: 템플릿 매칭 + 히스토그램 비교
-    double templateScore = calculateTemplateMatchScore(face1, face2);
-    double histogramScore = calculateHistogramSimilarity(face1, face2);
+double FaceMatcher::matchFaceByFeatures(const cv::Mat& detectedFace) {
+    if (detectedFace.empty() || referenceDescriptors.empty()) {
+        return 0.0;
+    }
     
-    // 가중 평균 (템플릿 매칭 60%, 히스토그램 40%)
-    return templateScore * 0.6 + histogramScore * 0.4;
+    // 전처리
+    cv::Mat processedFace = preprocessFace(detectedFace);
+    
+    // 특징점 추출
+    std::vector<cv::KeyPoint> detectedKeypoints;
+    cv::Mat detectedDescriptors;
+    extractFeatures(processedFace, detectedKeypoints, detectedDescriptors);
+    
+    if (detectedKeypoints.empty() || detectedDescriptors.empty()) {
+        return 0.0;
+    }
+    
+    // 최근접 매칭
+    std::vector<cv::DMatch> matches = findNearestMatches(referenceDescriptors, detectedDescriptors);
+    
+    if (matches.empty()) {
+        return 0.0;
+    }
+    
+    // 기하학적 검증
+    int verifiedMatches = verifyGeometry(referenceKeypoints, detectedKeypoints, matches);
+    
+    // 매칭 점수 계산
+    double score = calculateMatchScore(verifiedMatches, referenceKeypoints.size());
+    
+    // 디버그 정보 출력 (개발 시에만)
+    static int debugCount = 0;
+    if (debugCount++ % 30 == 0) { // 30프레임마다 한 번씩
+        printMatchingInfo(matches.size(), verifiedMatches, score);
+    }
+    
+    return score;
 }
 
-double FaceMatcher::calculateTemplateMatchScore(const cv::Mat& face1, const cv::Mat& face2) {
-    // 동일한 크기로 조정
-    cv::Mat resized1, resized2;
-    cv::resize(face1, resized1, cv::Size(100, 100));
-    cv::resize(face2, resized2, cv::Size(100, 100));
+void FaceMatcher::extractFeatures(const cv::Mat& image, std::vector<cv::KeyPoint>& keypoints, cv::Mat& descriptors) {
+    if (!detector) {
+        std::cerr << "❌ 특징점 검출기가 초기화되지 않았습니다!" << std::endl;
+        return;
+    }
     
-    // 그레이스케일 변환
-    cv::Mat gray1, gray2;
-    if (resized1.channels() == 3) cv::cvtColor(resized1, gray1, cv::COLOR_BGR2GRAY);
-    else gray1 = resized1.clone();
-    
-    if (resized2.channels() == 3) cv::cvtColor(resized2, gray2, cv::COLOR_BGR2GRAY);
-    else gray2 = resized2.clone();
-    
-    // 템플릿 매칭
-    cv::Mat result;
-    cv::matchTemplate(gray1, gray2, result, cv::TM_CCOEFF_NORMED);
-    
-    double minVal, maxVal;
-    cv::minMaxLoc(result, &minVal, &maxVal);
-    
-    // 0-1 범위로 정규화
-    return std::max(0.0, maxVal);
+    try {
+        detector->detectAndCompute(image, cv::noArray(), keypoints, descriptors);
+    } catch (const cv::Exception& e) {
+        std::cerr << "❌ 특징점 추출 에러: " << e.what() << std::endl;
+        keypoints.clear();
+        descriptors = cv::Mat();
+    }
 }
 
-double FaceMatcher::calculateHistogramSimilarity(const cv::Mat& face1, const cv::Mat& face2) {
-    // HSV 변환
-    cv::Mat hsv1, hsv2;
-    cv::cvtColor(face1, hsv1, cv::COLOR_BGR2HSV);
-    cv::cvtColor(face2, hsv2, cv::COLOR_BGR2HSV);
+std::vector<cv::DMatch> FaceMatcher::findNearestMatches(const cv::Mat& descriptors1, const cv::Mat& descriptors2) {
+    std::vector<cv::DMatch> goodMatches;
     
-    // 히스토그램 계산
-    int histSize[] = {32, 32}; // H, S 채널
-    float hRanges[] = {0, 180};
-    float sRanges[] = {0, 256};
-    const float* ranges[] = {hRanges, sRanges};
-    int channels[] = {0, 1};
+    if (!matcher || descriptors1.empty() || descriptors2.empty()) {
+        return goodMatches;
+    }
     
-    cv::Mat hist1, hist2;
-    cv::calcHist(&hsv1, 1, channels, cv::Mat(), hist1, 2, histSize, ranges);
-    cv::calcHist(&hsv2, 1, channels, cv::Mat(), hist2, 2, histSize, ranges);
+    try {
+        if (detectorType == "SIFT") {
+            // SIFT의 경우 k-NN 매칭 사용 (Lowe's ratio test)
+            std::vector<std::vector<cv::DMatch>> knnMatches;
+            matcher->knnMatch(descriptors1, descriptors2, knnMatches, 2);
+            goodMatches = filterGoodMatches(knnMatches);
+        } else {
+            // ORB의 경우 단순 매칭 후 거리 기반 필터링
+            std::vector<cv::DMatch> matches;
+            matcher->match(descriptors1, descriptors2, matches);
+            
+            // 거리 기반 필터링
+            double maxDist = 0; double minDist = 100;
+            for (const auto& match : matches) {
+                double dist = match.distance;
+                if (dist < minDist) minDist = dist;
+                if (dist > maxDist) maxDist = dist;
+            }
+            
+            double threshold = std::max(2 * minDist, 30.0);
+            for (const auto& match : matches) {
+                if (match.distance <= threshold) {
+                    goodMatches.push_back(match);
+                }
+            }
+        }
+    } catch (const cv::Exception& e) {
+        std::cerr << "❌ 특징점 매칭 에러: " << e.what() << std::endl;
+    }
     
-    // 히스토그램 정규화
-    cv::normalize(hist1, hist1, 0, 1, cv::NORM_MINMAX);
-    cv::normalize(hist2, hist2, 0, 1, cv::NORM_MINMAX);
+    return goodMatches;
+}
+
+std::vector<cv::DMatch> FaceMatcher::filterGoodMatches(const std::vector<std::vector<cv::DMatch>>& knnMatches) {
+    std::vector<cv::DMatch> goodMatches;
     
-    // 코릴레이션 계산
-    double correlation = cv::compareHist(hist1, hist2, cv::HISTCMP_CORREL);
+    for (const auto& matchPair : knnMatches) {
+        if (matchPair.size() == 2) {
+            // Lowe's ratio test
+            if (matchPair[0].distance < maxDistanceRatio * matchPair[1].distance) {
+                goodMatches.push_back(matchPair[0]);
+            }
+        }
+    }
     
-    return std::max(0.0, correlation);
+    return goodMatches;
+}
+
+int FaceMatcher::verifyGeometry(const std::vector<cv::KeyPoint>& keypoints1, 
+                               const std::vector<cv::KeyPoint>& keypoints2,
+                               const std::vector<cv::DMatch>& matches) {
+    if (matches.size() < 4) { // RANSAC에는 최소 4개의 점이 필요
+        return matches.size();
+    }
+    
+    try {
+        // 매칭된 점들 추출
+        std::vector<cv::Point2f> points1, points2;
+        for (const auto& match : matches) {
+            points1.push_back(keypoints1[match.queryIdx].pt);
+            points2.push_back(keypoints2[match.trainIdx].pt);
+        }
+        
+        // RANSAC을 사용하여 호모그래피 추정 및 inlier 찾기
+        cv::Mat mask;
+        cv::findHomography(points1, points2, cv::RANSAC, 3.0, mask);
+        
+        // inlier 개수 세기
+        int inlierCount = 0;
+        if (!mask.empty()) {
+            for (int i = 0; i < mask.rows; ++i) {
+                if (mask.at<uchar>(i) > 0) {
+                    inlierCount++;
+                }
+            }
+        }
+        
+        return inlierCount;
+    } catch (const cv::Exception& e) {
+        std::cerr << "❌ 기하학적 검증 에러: " << e.what() << std::endl;
+        return 0;
+    }
+}
+
+double FaceMatcher::calculateMatchScore(int goodMatches, int totalKeypoints) {
+    if (totalKeypoints == 0) return 0.0;
+    
+    // 매칭 비율 계산
+    double matchRatio = static_cast<double>(goodMatches) / totalKeypoints;
+    
+    // 최소 매칭 개수 조건 확인
+    if (goodMatches < minMatchCount) {
+        matchRatio *= 0.5; // 페널티 적용
+    }
+    
+    // 0-1 범위로 클램핑
+    return std::min(1.0, std::max(0.0, matchRatio));
 }
 
 cv::Mat FaceMatcher::preprocessFace(const cv::Mat& face) {
     cv::Mat processed;
     
     // 크기 정규화
-    cv::resize(face, processed, cv::Size(150, 150));
+    cv::resize(face, processed, cv::Size(200, 200));
     
-    // 조명 보정
+    // 조명 보정 (CLAHE)
     cv::Mat lab;
     cv::cvtColor(processed, lab, cv::COLOR_BGR2Lab);
     std::vector<cv::Mat> labChannels;
@@ -356,11 +497,14 @@ cv::Mat FaceMatcher::preprocessFace(const cv::Mat& face) {
     cv::merge(labChannels, lab);
     cv::cvtColor(lab, processed, cv::COLOR_Lab2BGR);
     
+    // 가우시안 블러로 노이즈 제거
+    cv::GaussianBlur(processed, processed, cv::Size(3, 3), 0.5);
+    
     return processed;
 }
 
 void FaceMatcher::drawMatchResult(cv::Mat& frame, const cv::Rect& faceRect, 
-                                 double matchScore, bool isMatch) {
+                                 double matchScore, bool isMatch, int matchCount) {
     // 매칭 결과에 따른 색상 결정
     cv::Scalar color = isMatch ? cv::Scalar(0, 0, 255) : cv::Scalar(0, 255, 255); // 빨강 or 노랑
     int thickness = isMatch ? 4 : 2;
@@ -368,8 +512,8 @@ void FaceMatcher::drawMatchResult(cv::Mat& frame, const cv::Rect& faceRect,
     // 사각형 그리기
     cv::rectangle(frame, faceRect, color, thickness);
     
-    // 매칭 점수 표시
-    std::string scoreText = std::to_string(int(matchScore * 100)) + "%";
+    // 매칭 정보 표시
+    std::string scoreText = std::to_string(int(matchScore * 100)) + "% (" + std::to_string(matchCount) + ")";
     if (isMatch) {
         scoreText = "MATCH " + scoreText;
     }
@@ -385,15 +529,65 @@ void FaceMatcher::drawMatchResult(cv::Mat& frame, const cv::Rect& faceRect,
         int radius = std::max(faceRect.width, faceRect.height) / 2 + 10;
         cv::circle(frame, center, radius, cv::Scalar(0, 0, 255), 3);
         
-        // "MATCHED!" 텍스트
-        cv::putText(frame, "MATCHED!", 
+        // "FEATURE MATCHED!" 텍스트
+        cv::putText(frame, "FEATURE MATCHED!", 
                    cv::Point(faceRect.x, faceRect.y + faceRect.height + 25),
                    cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
     }
 }
 
+void FaceMatcher::drawFeatureMatches(const cv::Mat& detectedFace, const std::vector<cv::KeyPoint>& keypoints, 
+                                   const std::vector<cv::DMatch>& goodMatches) {
+    // 특징점 매칭 시각화 (디버깅용)
+    cv::Mat matchImg;
+    cv::drawMatches(referenceFaceImage, referenceKeypoints, detectedFace, keypoints,
+                   goodMatches, matchImg, cv::Scalar::all(-1), cv::Scalar::all(-1),
+                   std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+    
+    cv::imshow("Feature Matches", matchImg);
+}
+
+void FaceMatcher::printMatchingInfo(int totalMatches, int goodMatches, double score) {
+    std::cout << "🔍 매칭 정보: 전체=" << totalMatches 
+              << ", 검증됨=" << goodMatches 
+              << ", 점수=" << std::fixed << std::setprecision(3) << score << std::endl;
+}
+
 // 유틸리티 함수들 구현
-namespace FaceMatchingUtils {
+namespace FeatureMatchingUtils {
+    cv::Ptr<cv::Feature2D> createFeatureDetector(const std::string& type) {
+        if (type == "SIFT") {
+            return cv::SIFT::create(500); // 최대 500개 특징점
+        } else if (type == "ORB") {
+            return cv::ORB::create(500, 1.2f, 8, 31, 0, 2, cv::ORB::HARRIS_SCORE, 31, 20);
+        } else {
+            std::cerr << "❌ 지원하지 않는 특징점 검출기: " << type << std::endl;
+            return cv::SIFT::create(500); // 기본값으로 SIFT 사용
+        }
+    }
+    
+    cv::Ptr<cv::DescriptorMatcher> createDescriptorMatcher(const std::string& type, const std::string& detectorType) {
+        if (type == "BF") {
+            if (detectorType == "SIFT") {
+                return cv::BFMatcher::create(cv::NORM_L2);
+            } else { // ORB
+                return cv::BFMatcher::create(cv::NORM_HAMMING);
+            }
+        } else if (type == "FLANN") {
+            if (detectorType == "SIFT") {
+                return cv::FlannBasedMatcher::create();
+            } else {
+                // ORB용 FLANN 설정
+                auto indexParams = cv::makePtr<cv::flann::LshIndexParams>(6, 12, 1);
+                auto searchParams = cv::makePtr<cv::flann::SearchParams>(50);
+                return cv::makePtr<cv::FlannBasedMatcher>(indexParams, searchParams);
+            }
+        } else {
+            std::cerr << "❌ 지원하지 않는 매처 타입: " << type << std::endl;
+            return cv::BFMatcher::create();
+        }
+    }
+    
     cv::Mat resizeImage(const cv::Mat& image, int targetWidth) {
         if (image.empty()) return cv::Mat();
         
@@ -423,5 +617,10 @@ namespace FaceMatchingUtils {
     
     double scoreToPercent(double score) {
         return std::max(0.0, std::min(100.0, score * 100.0));
+    }
+    
+    double calculateFeatureDensity(const std::vector<cv::KeyPoint>& keypoints, const cv::Size& imageSize) {
+        if (keypoints.empty() || imageSize.area() == 0) return 0.0;
+        return static_cast<double>(keypoints.size()) / imageSize.area();
     }
 }

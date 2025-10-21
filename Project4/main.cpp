@@ -4,8 +4,13 @@
 #include <fstream>
 
 void printUsage() {
-    std::cout << "🎯 얼굴 매칭 시스템 v2.0" << std::endl;
-    std::cout << "=========================" << std::endl;
+    std::cout << "🎯 최근접 특징 매칭 기반 얼굴 인식 시스템 v3.0" << std::endl;
+    std::cout << "=============================================" << std::endl;
+    std::cout << std::endl;
+    std::cout << "🔬 특징점 매칭 알고리즘:" << std::endl;
+    std::cout << "   - SIFT (Scale-Invariant Feature Transform)" << std::endl;
+    std::cout << "   - ORB (Oriented FAST and Rotated BRIEF)" << std::endl;
+    std::cout << "   - 최근접 이웃 매칭 + 기하학적 검증" << std::endl;
     std::cout << std::endl;
     std::cout << "📋 지원하는 입력 소스:" << std::endl;
     std::cout << "   1. 웹캠 실시간 영상" << std::endl;
@@ -21,11 +26,13 @@ void printUsage() {
     std::cout << "   - ESC 또는 'q': 프로그램 종료" << std::endl;
     std::cout << "   - SPACE: 일시정지/재생 (비디오 파일만)" << std::endl;
     std::cout << "   - 't': 매칭 임계값 조정 (기본: 70%)" << std::endl;
+    std::cout << "   - 'd': 특징점 검출기 변경 (SIFT ↔ ORB)" << std::endl;
     std::cout << "   - 's': 현재 화면 스크린샷 저장" << std::endl;
     std::cout << std::endl;
-    std::cout << "💡 팁:" << std::endl;
-    std::cout << "   - 조명이 적당한 곳에서 테스트하세요" << std::endl;
-    std::cout << "   - 정면을 보는 얼굴 사진을 사용하세요" << std::endl;
+    std::cout << "💡 특징점 매칭 팁:" << std::endl;
+    std::cout << "   - 텍스처가 풍부한 얼굴 사진을 사용하세요" << std::endl;
+    std::cout << "   - 조명이 적당하고 균일한 곳에서 테스트하세요" << std::endl;
+    std::cout << "   - SIFT는 정확하지만 느리고, ORB는 빠르지만 덜 정확합니다" << std::endl;
     std::cout << "   - MP4 파일은 ./videos/ 폴더에 준비하세요" << std::endl;
     std::cout << std::endl;
 }
